@@ -1,4 +1,4 @@
 Hub
 ===
 
-** TODO: Add description **
+# Class example
