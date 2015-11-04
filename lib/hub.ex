@@ -4,8 +4,8 @@ defmodule Hub do
     :global.register_name(:hub, pid)
   end
 
-  def connect(pid) do
-    send :global.whereis_name(:hub), {:new_client, pid}
+  def connect(pid, name) do
+    send :global.whereis_name(:hub), {:new_client, pid, name}
   end
 
   def status(msg) do
@@ -16,9 +16,9 @@ defmodule Hub do
     send :global.whereis_name(name), {:secret, msg}
   end
 
-  def notify_clients(clients, pid) do
+  def notify_clients(clients, pid, name) do
     Enum.each clients, fn client ->
-      send client, {:new_client, pid}
+      send client, {:new_client, pid, name}
     end
   end
 
@@ -30,9 +30,9 @@ defmodule Hub do
 
   def connector(clients) do
     receive do
-      {:new_client, pid } -> 
-        IO.puts "New client here #{inspect pid}"
-        notify_clients([pid | clients], pid)
+      {:new_client, pid, name } -> 
+        IO.puts "New client here: #{name} "
+        notify_clients([pid | clients], pid, name)
         connector([pid | clients])
       {:status, msg} ->
         IO.puts "Sending out status message"
@@ -40,8 +40,9 @@ defmodule Hub do
         connector(clients)
       {:quit}  ->
         IO.puts "Got quit, shutting down"
-      _ ->
-        IO.puts "Got garbage, looping"
+      garbage ->
+        IO.puts "Got garbage:"
+        IO.inspect garbage
         connector(clients)
     end
   end
